@@ -30,8 +30,9 @@ jobs:
       - name: push Docker image to ECR
         run: |
           docker push ${{ steps.login-ecr.outputs.registry }}/hello-lambda:latest
-      - name: Deploy Lambda Function
-        uses: aws-actions/aws-lambda-deploy@v1
-        with:
-          function-name: hello-lambda
-          image-uri: ${{ steps.login-ecr.outputs.registry }}/hello-lambda:latest
+      - name: Update Lambda Function to us ethe new image
+        run: |
+          aws lambda update-function-code \
+            --function-name hello-lambda \
+            --image-uri ${{ steps.login-ecr.outputs.registry }}/hello-lambda:latest \
+            --region us-east-1
