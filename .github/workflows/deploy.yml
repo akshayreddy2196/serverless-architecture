@@ -87,4 +87,28 @@ jobs:
 
           echo "API Gateway endpoint: https://${API_ID}.execute-api.us-east-1.amazonaws.com/hello"
 
+      - name: Setup OPA
+                  run: |
+                        curl -L -o opa https://openpolicyagent.org/downloads/v0.58.0/opa_linux_amd64
+                        chmod +x opa
+                        sudo mv opa /usr/local/bin/
+                - name: Run OPA Policies
+                  run: |
+                        opa eval --format pretty --data policies/ --input tfplan.json "data.terraform.deny"
+                        opa eval --format pretty --data policies/ --input tfplan.json "data.lambda.deny"
+                - name: OPA Policy Check
+                  run: |
+                        # Check Terraform policies
+                        terraform_result=$(opa eval --format json --data policies/ --input tfplan.json "data.terraform.deny" | jq '.result[].expressions[].value')
+                        lambda_result=$(opa eval --format json --data policies/ --input tfplan.json "data.lambda.deny" | jq '.result[].expressions[].value')
+                        if [ "$terraform_result" != "[]" ] || [ "$lambda_result" != "[]" ]; then
+                          echo "OPA policy violations found:"
+                          opa eval --format pretty --data policies/ --input tfplan.json "data.terraform.deny"
+                          opa eval --format pretty --data policies/ --input tfplan.json "data.lambda.deny"
+                          # exit 1 
+                        else
+                          echo "All OPA policies passed"
+                        fi
+                  continue-on-error: true  
+
 
