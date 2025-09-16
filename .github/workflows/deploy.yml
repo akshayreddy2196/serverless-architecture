@@ -37,5 +37,6 @@ jobs:
             --function-name hello-lambda \
             --package-type Image \
             --code ImageUri=${{ steps.login-ecr.outputs.registry }}/hello-lambda:latest \
+            --role arn:aws:iam::445830509416:role/lambda-execution-role \
             --region us-east-1
 
