@@ -11,7 +11,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-         OIDC/IRSA Authentication - No more access keys!
+      #OIDC/IRSA Authentication - No more access keys!
       - name: Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
