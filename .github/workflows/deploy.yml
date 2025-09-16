@@ -3,6 +3,13 @@ name: Deploy Lambda Container Image
 on:
   workflow_dispatch:
 
+permissions:
+
+    id-token: write   # Required for OIDC
+    contents: read    # Required to clone the repo
+
+ 
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -15,8 +22,8 @@ jobs:
       - name: Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
-         role-to-assume: "arn:aws:iam::445830509416:oidc-provider/token.actions.githubusercontent.com"
-         role-session-name: GitHubActions-Backend-${{ github.run_id }}
+         role-to-assume: "arn:aws:iam::445830509416:role/oicd-role"
+         #role-session-name: GitHubActions-Backend-${{ github.run_id }}
          aws-region: "us-east-1"
 
       # - name: Configure AWS Credentials  
