@@ -40,3 +40,36 @@ jobs:
             --role arn:aws:iam::445830509416:role/lambda-execution-role \
             --region us-east-1
 
+      - name: Create API Gateway
+        run: |
+          API_ID=$(aws apigatewayv2 create-api \
+            --name hello-api \
+            --protocol-type HTTP \
+            --target arn:aws:lambda:us-east-1:445830509416:function:hello-lambda \
+            --query 'ApiId' --output text)
+
+          aws lambda add-permission \
+            --function-name hello-lambda \
+            --statement-id apigateway-access \
+            --action lambda:InvokeFunction \
+            --principal apigateway.amazonaws.com \
+            --source-arn arn:aws:execute-api:us-east-1:445830509416:${API_ID}/*/*/hello
+
+          INTEGRATION_ID=$(aws apigatewayv2 create-integration \
+            --api-id $API_ID \
+            --integration-type AWS_PROXY \
+            --integration-uri arn:aws:lambda:us-east-1:445830509416:function:hello-lambda \
+            --payload-format-version 2.0 \
+            --query 'IntegrationId' --output text)
+
+          aws apigatewayv2 create-route \
+            --api-id $API_ID \
+            --route-key "GET /hello" \
+            --target integrations/$INTEGRATION_ID
+
+          aws apigatewayv2 create-deployment \
+            --api-id $API_ID
+
+          echo "API Gateway endpoint: https://${API_ID}.execute-api.us-east-1.amazonaws.com/hello"
+
+
